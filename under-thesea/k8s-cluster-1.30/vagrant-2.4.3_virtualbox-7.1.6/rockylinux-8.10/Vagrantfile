@@ -138,7 +138,7 @@ $install_master = <<-SHELL
 
 echo '======== [8] kubeadm으로 클러스터 생성  ========'
 echo '======== [8-1] 클러스터 초기화 (Pod Network 세팅) ========'
-kubeadm init --pod-network-cidr=20.96.0.0/16 --apiserver-advertise-address 192.168.56.30
+kubeadm init --pod-network-cidr=20.96.0.0/12 --apiserver-advertise-address 192.168.56.30
 
 echo '======== [8-2] kubectl 사용 설정 ========'
 mkdir -p $HOME/.kube
@@ -157,16 +157,18 @@ echo 'alias k=kubectl' >>~/.bashrc
 echo 'complete -o default -F __start_kubectl k' >>~/.bashrc
 
 
-echo '======== [9-2] Dashboard 설치 ========'
+echo '======== [9-2] Helm/Dashboard 설치 ========'
 echo '======== [9-2-1] Helm 설치 ========'
 curl -O https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz
 tar -zxvf helm-v3.15.4-linux-amd64.tar.gz
 mv linux-amd64/helm /usr/bin/helm
 
-echo '======== [9-2-2] Helm-Dashboard설치 ========'
-helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
-curl -O https://raw.githubusercontent.com/k8s-1pro/install/main/under-thesea/k8s-cluster-1.30/kubernetes-dashboard-7.7.0/helm-7.7.0/values-custom.yaml
-helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard -f values-custom.yaml
+echo '======== [9-2-2] Dashboard설치 ========'
+helm repo add k8s-dashboard https://kubernetes.github.io/dashboard
+helm pull k8s-dashboard/kubernetes-dashboard --version 7.7.0
+tar -xf kubernetes-dashboard-7.7.0.tgz
+curl -o ./kubernetes-dashboard/values-custom.yaml https://raw.githubusercontent.com/k8s-1pro/install/main/under-thesea/k8s-cluster-1.30/kubernetes-dashboard-7.7.0/helm-7.7.0/values-custom.yaml
+helm upgrade --install kubernetes-dashboard ./kubernetes-dashboard -n kubernetes-dashboard --create-namespace -f ./kubernetes-dashboard/values-custom.yaml
 
 echo '======== [9-2-3] Dashboard Admin 접근 권한 생성 ========'
 kubectl create -f https://raw.githubusercontent.com/k8s-1pro/install/main/under-thesea/k8s-cluster-1.30/kubernetes-dashboard-7.7.0/serviceaccount.yaml
